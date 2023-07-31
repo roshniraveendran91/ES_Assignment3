@@ -49,6 +49,26 @@ def get_student():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route('/students/showall', methods=['GET'])
+def showall():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM student')
+        students = cursor.fetchall()
+        conn.close()
+
+        if students:
+            # Convert the list of tuples to a list of dictionaries for JSON serialization
+            students_list = [dict(student) for student in students]
+            return jsonify(students_list), 200
+        else:
+            return jsonify({"message": "No students found."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # Route to update an existing student record by student_id
 @app.route('/students/update', methods=['POST'])
 def update_student():
@@ -75,12 +95,13 @@ def update_student():
 @app.route('/students/delete', methods=['POST'])
 def delete_student():
     try:
-        student_id = request.form.get("student_id")
+        student_id = int(request.form.get("student_id"))
+        print(student_id)
         conn = get_db_connection()
         cursor = conn.cursor()
 
         # Execute the DELETE operation
-        cursor.execute('DELETE FROM students WHERE student_id = ?', (student_id,))
+        cursor.execute('DELETE FROM student WHERE student_id = ?', (student_id,))
 
         # Check if any rows were affected
         if cursor.rowcount > 0:
